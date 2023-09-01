@@ -9,7 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   imports: [
     TypeOrmModule.forRoot({
       type: 'mongodb',
-      url: 'mongodb://localhost:27017/current-vpn',
+      url: 'mongodb+srv://hassannaftabb:kLBgCS61OZZdjxfd@main.6j9dolg.mongodb.net/?retryWrites=true&w=majority',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
