@@ -4,8 +4,11 @@ import {
   ObjectIdColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ObjectId } from 'mongodb';
+import { Subscription } from 'src/subscriptions/entities/subscription.entity';
 
 @Entity()
 export class User {
@@ -26,6 +29,16 @@ export class User {
 
   @Column({ nullable: true })
   googleAccessToken?: string;
+
+  @OneToOne(() => Subscription, (subscription) => subscription.user, {
+    cascade: true,
+    eager: true,
+  })
+  @JoinColumn()
+  subscription: Subscription;
+
+  @Column({ type: 'boolean', nullable: true })
+  isPremiumUser?: boolean;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
