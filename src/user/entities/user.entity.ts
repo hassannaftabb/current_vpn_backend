@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { Subscription } from 'src/subscriptions/entities/subscription.entity';
+import { Device } from './device.type';
 
 @Entity()
 export class User {
@@ -29,6 +30,18 @@ export class User {
 
   @Column({ nullable: true })
   googleAccessToken?: string;
+
+  @Column({ default: 'ACTIVE' })
+  status?: string;
+
+  @Column({ nullable: true })
+  location?: string;
+
+  @Column()
+  devices?: Device[];
+
+  @Column({ default: 15 })
+  time?: number;
 
   @OneToOne(() => Subscription, (subscription) => subscription.user, {
     cascade: true,

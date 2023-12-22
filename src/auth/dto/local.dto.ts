@@ -1,4 +1,5 @@
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsObject, IsString } from 'class-validator';
+import { Device } from 'src/user/entities/device.type';
 
 export class EmailLoginDto {
   @IsString()
@@ -7,4 +8,7 @@ export class EmailLoginDto {
 
   @IsString()
   readonly password: string;
+
+  @IsObject()
+  readonly device: Device;
 }

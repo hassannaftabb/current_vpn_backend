@@ -1,5 +1,12 @@
-import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsObject,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ProviderEnum } from '../entities/enums/provider.enum';
+import { Device } from '../entities/device.type';
 
 export class CreateUserDto {
   @IsString()
@@ -24,4 +31,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(ProviderEnum)
   readonly provider?: string;
+
+  @IsObject()
+  readonly device: Device;
 }

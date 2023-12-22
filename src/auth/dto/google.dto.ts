@@ -1,4 +1,5 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsObject, IsOptional, IsString } from 'class-validator';
+import { Device } from 'src/user/entities/device.type';
 
 export class GoogleAuthDto {
   @IsString()
@@ -14,4 +15,8 @@ export class GoogleAuthDto {
 
   @IsString()
   readonly googleAccessToken: string;
+
+  @IsOptional()
+  @IsObject()
+  readonly device: Device;
 }

@@ -17,4 +17,8 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   readonly phoneNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  readonly location?: string;
 }

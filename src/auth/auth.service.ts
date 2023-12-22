@@ -17,7 +17,10 @@ export class AuthService {
     private userService: UserService,
   ) {}
   async logInViaEmail(emailoginDto: EmailLoginDto) {
-    const user = await this.userService.getUserByEmail(emailoginDto.email);
+    const user = await this.userService.getUserByEmail(
+      emailoginDto.email,
+      emailoginDto.device,
+    );
     if (!user) {
       throw new NotFoundException(
         `User with ${emailoginDto.email} email doesn't exist`,
@@ -51,7 +54,10 @@ export class AuthService {
   }
 
   async authViaGoogle(googleAuthDto: GoogleAuthDto) {
-    const user = await this.userService.getUserByEmail(googleAuthDto.email);
+    const user = await this.userService.getUserByEmail(
+      googleAuthDto.email,
+      googleAuthDto.device,
+    );
     if (user && user.googleAccessToken) {
       const payloadForToken = {
         email: user.email,
