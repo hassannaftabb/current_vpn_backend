@@ -4,6 +4,9 @@ export class CreateServerDto {
   @IsString()
   name: string;
 
+  @IsString()
+  title: string;
+
   @IsBoolean()
   isPremium: boolean;
 

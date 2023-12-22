@@ -5,6 +5,10 @@ export class UpdateServerDto {
   @IsOptional()
   readonly name?: string;
 
+  @IsString()
+  @IsOptional()
+  readonly title?: string;
+
   @IsBoolean()
   @IsOptional()
   isPremium: boolean;

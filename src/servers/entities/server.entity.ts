@@ -16,6 +16,9 @@ export class Server {
   name: string;
 
   @Column()
+  title: string;
+
+  @Column()
   isPremium: boolean;
 
   @Column()
