@@ -224,7 +224,7 @@ export class SubscriptionsService {
             );
           }
           const plan = await this.planRepository.findOneBy({
-            name: 'MONTHLY_PRO',
+            name: planName,
           });
 
           const expiryDate = moment().add(plan.durationInDays, 'days').toDate();
