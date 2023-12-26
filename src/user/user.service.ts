@@ -16,6 +16,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ObjectId } from 'mongodb';
 import { ChangePasswordDto } from './dto/update-pass.dto';
 import { Device } from './entities/device.type';
+import { Reference } from 'src/reference/entities/reference.entity';
+import { generateOtp, generateOtpExpiry, isOtpExpired } from './utils/utils';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UserService {
@@ -23,7 +26,21 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: MongoRepository<User>,
     private jwtService: JwtService,
+    private emailService: EmailService,
+    @InjectRepository(Reference)
+    private readonly referenceRepository: MongoRepository<Reference>,
   ) {}
+  generateRandomReferenceCode(length = 10) {
+    let result = '';
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return `CV${result}`;
+  }
+
   async create(createUserDto: CreateUserDto) {
     if (
       createUserDto.provider === ProviderEnum.LOCAL &&
@@ -31,6 +48,11 @@ export class UserService {
     ) {
       throw new NotFoundException('Password must be provided!');
     } else {
+      const referall = await this.userRepository.findOne({
+        where: {
+          selfReference: createUserDto.reference,
+        },
+      });
       const userToCreate: any = {
         email: createUserDto.email,
         ...(createUserDto.password && {
@@ -43,6 +65,9 @@ export class UserService {
         time: 15,
         status: 'ACTIVE',
         devices: [createUserDto.device],
+        referredBy: referall ? referall._id : null,
+        selfReference: this.generateRandomReferenceCode(),
+        referredByCode: referall ? referall.selfReference : null,
       };
       const isExistingUser = await this.getUserByEmail(createUserDto.email);
       if (isExistingUser) {
@@ -216,5 +241,98 @@ export class UserService {
     const device_idx = user.devices.findIndex((d) => d.id === device_id);
     user.devices.splice(device_idx, 1);
     return await this.userRepository.save(user);
+  }
+
+  async getUserReferallInfo(user_id) {
+    const allSentReferalls = await this.referenceRepository.find({
+      where: {
+        owner: new ObjectId(user_id),
+      },
+      select: {
+        status: true,
+        code: true,
+        _id: true,
+        createdAt: true,
+      },
+    });
+    return allSentReferalls;
+  }
+
+  async resendOtp(email: string) {
+    const user = await this.getUserByEmail(email);
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+    const newOtp = generateOtp();
+    const newOtpExpiry = generateOtpExpiry();
+
+    user.otp = newOtp;
+    user.otpExpiry = newOtpExpiry;
+
+    await this.userRepository.save(user);
+
+    await this.emailService.sendResetPasswordOtpEmail(
+      user.email,
+      user.name,
+      newOtp,
+    );
+
+    return { message: 'OTP Resent successfully' };
+  }
+
+  async initiateResetPassword(email: string) {
+    const user = await this.getUserByEmail(email);
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+
+    const newOtp = generateOtp();
+    const newOtpExpiry = generateOtpExpiry();
+
+    user.otp = newOtp;
+    user.otpExpiry = newOtpExpiry;
+
+    await this.userRepository.save(user);
+
+    await this.emailService.sendResetPasswordOtpEmail(
+      user.email,
+      user.name,
+      newOtp,
+    );
+
+    return { message: 'Reset password OTP sent successfully' };
+  }
+
+  async confirmResetPassword(
+    email: string,
+    userOtp: number,
+    newPassword: string,
+  ) {
+    const user = await this.getUserByEmail(email);
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+
+    if (user.otp !== userOtp) {
+      throw new HttpException('Invalid OTP!', HttpStatus.BAD_REQUEST);
+    }
+
+    if (isOtpExpired(user.otpExpiry)) {
+      throw new HttpException('OTP has expired!', HttpStatus.BAD_REQUEST);
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.otp = null;
+    user.otpExpiry = null;
+
+    await this.userRepository.save(user);
+
+    await this.emailService.sendPasswordResetConfirmationEmail(
+      user.email,
+      user.name,
+    );
+
+    return { message: 'Password reset successfully' };
   }
 }

@@ -32,6 +32,9 @@ export class CreateUserDto {
   @IsEnum(ProviderEnum)
   readonly provider?: string;
 
+  @IsOptional()
+  readonly reference?: string;
+
   @IsObject()
   readonly device: Device;
 }

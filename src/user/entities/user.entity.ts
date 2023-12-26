@@ -35,10 +35,25 @@ export class User {
   status?: string;
 
   @Column({ nullable: true })
+  selfReference?: string;
+
+  @Column({ nullable: true })
+  referredBy?: string;
+
+  @Column({ nullable: true })
+  referredByCode?: string;
+
+  @Column({ nullable: true })
   location?: string;
 
   @Column()
   devices?: Device[];
+
+  @Column({ nullable: true })
+  otp?: number;
+
+  @Column({ nullable: true })
+  otpExpiry?: string;
 
   @Column({ default: 15 })
   time?: number;

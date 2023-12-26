@@ -5,10 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
+import { Reference } from 'src/reference/entities/reference.entity';
+import { EmailService } from 'src/email/email.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Reference]),
     ConfigModule.forRoot(),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
@@ -18,7 +20,7 @@ import { ConfigModule } from '@nestjs/config';
     }),
   ],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, EmailService],
   exports: [UserService],
 })
 export class UserModule {}

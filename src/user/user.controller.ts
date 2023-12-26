@@ -8,6 +8,8 @@ import {
   Patch,
   UseGuards,
   Request,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
@@ -64,11 +66,44 @@ export class UserController {
     return this.userService.updateUserById(id, updateUserDto);
   }
 
+  @Get('resend-otp/:email')
+  resendOtp(@Param('email') email: string) {
+    return this.userService.resendOtp(email);
+  }
+
+  @Post('initiate-reset-password/:email')
+  initiateResetPassword(@Param('email') email: string) {
+    return this.userService.initiateResetPassword(email);
+  }
+
+  @Post('confirm-reset-password')
+  confirmResetPassword(
+    @Body() body: { email: string; otp: string; newPassword: string },
+  ) {
+    const { email, otp, newPassword } = body;
+    if (!email || !otp || !newPassword) {
+      throw new HttpException(
+        'Missing required parameters',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    return this.userService.confirmResetPassword(
+      email,
+      parseInt(otp),
+      newPassword,
+    );
+  }
+
   @Patch(':id/password')
   changePassword(
     @Param('id') id: string,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     return this.userService.changePassword(id, changePasswordDto);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('referall-stats')
+  referalls(@Request() req) {
+    return this.userService.getUserReferallInfo(req.user.id);
   }
 }

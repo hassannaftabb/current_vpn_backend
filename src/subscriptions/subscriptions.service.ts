@@ -6,7 +6,7 @@ import {
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { MongoRepository } from 'typeorm';
 import { Plan } from 'src/plans/entities/plan.entity';
 import { Subscription } from './entities/subscription.entity';
 import { PaymentsService } from 'src/payments/payments.service';
@@ -14,19 +14,25 @@ import * as moment from 'moment';
 import { generateRandomPassword } from './utils';
 import * as bcrypt from 'bcrypt';
 import { ObjectId } from 'mongodb';
+import { Reference } from 'src/reference/entities/reference.entity';
 
 @Injectable()
 export class SubscriptionsService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly userRepository: MongoRepository<User>,
     @InjectRepository(Plan)
-    private readonly planRepository: Repository<Plan>,
+    private readonly planRepository: MongoRepository<Plan>,
     @InjectRepository(Subscription)
-    private readonly subscriptionRepository: Repository<Subscription>,
+    private readonly subscriptionRepository: MongoRepository<Subscription>,
     private readonly paymentsService: PaymentsService,
+    @InjectRepository(Reference)
+    private readonly referenceRepository: MongoRepository<Reference>,
   ) {}
-  async create(createSubscriptionDto: CreateSubscriptionDto) {
+  async create(
+    createSubscriptionDto: CreateSubscriptionDto,
+    applyReferall?: boolean,
+  ) {
     const user = await this.userRepository.findOneBy({
       _id: new ObjectId(createSubscriptionDto.userId),
     });
@@ -41,19 +47,12 @@ export class SubscriptionsService {
       await this.subscriptionRepository.findOne({
         where: {
           planId: plan._id,
-          user: {
-            _id: new ObjectId(createSubscriptionDto.userId),
-          },
-        },
-        relations: {
-          user: true,
+          userId: new ObjectId(createSubscriptionDto.userId),
         },
       });
     const previousSubscription = await this.subscriptionRepository.findOne({
       where: {
-        user: {
-          _id: new ObjectId(createSubscriptionDto.userId),
-        },
+        userId: new ObjectId(createSubscriptionDto.userId),
         isActive: true,
         isExpired: false,
       },
@@ -68,6 +67,43 @@ export class SubscriptionsService {
       );
     }
 
+    if (user.referredBy && applyReferall) {
+      const referall = await this.userRepository.findOne({
+        where: {
+          _id: new ObjectId(user.referredBy),
+        },
+      });
+      const referallSubscription = await this.subscriptionRepository.findOne({
+        where: {
+          userId: referall._id,
+          isActive: true,
+          isExpired: false,
+        },
+      });
+      const referallSubscriptionExpiryDate = referallSubscription?.expiryDate
+        ? referallSubscription?.expiryDate
+        : new Date();
+      const expiryDate = moment(referallSubscriptionExpiryDate)
+        .add(1, 'month')
+        .toDate();
+      const referenceLog = this.referenceRepository.create({
+        code: user.referredByCode,
+        owner: referall._id,
+        receiver: user._id,
+        status: 'ACCEPTED',
+      });
+      await this.referenceRepository.save(referenceLog);
+      await this.create(
+        {
+          expiryDate,
+          isActive: true,
+          isExpired: false,
+          planName: 'MONTHLY_PRO',
+          userId: referall._id,
+        },
+        false,
+      );
+    }
     const subscription = {
       ...createSubscriptionDto,
       user: user,
@@ -102,16 +138,15 @@ export class SubscriptionsService {
       },
     });
   }
-  async findOneByUserId(id: string) {
+  async findOneByUserId(id: string | ObjectId) {
     const subscription = await this.subscriptionRepository.findOne({
       where: {
-        user: {
-          _id: new ObjectId(id),
-        },
+        userId: new ObjectId(id),
         isActive: true,
         isExpired: false,
       },
     });
+    if (!subscription) return null;
     const plan = await this.planRepository.findOneBy({
       _id: new ObjectId(subscription.planId),
     });
@@ -199,13 +234,16 @@ export class SubscriptionsService {
           });
 
           if (existingUser) {
-            await this.create({
-              expiryDate,
-              isActive: true,
-              isExpired: false,
-              planName: plan.name,
-              userId: existingUser._id,
-            });
+            await this.create(
+              {
+                expiryDate,
+                isActive: true,
+                isExpired: false,
+                planName: plan.name,
+                userId: existingUser._id,
+              },
+              true,
+            );
           } else {
             const randPassword = generateRandomPassword(12);
             const newUser = this.userRepository.create({
