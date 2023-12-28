@@ -45,7 +45,7 @@ export class AuthService {
       return {
         accessToken: token,
         email: user.email,
-        id: user._id,
+        _id: user._id,
         name: user.name,
       };
     } else {
@@ -68,7 +68,7 @@ export class AuthService {
       return {
         accessToken: token,
         email: user.email,
-        id: user._id,
+        _id: user._id,
         name: user.name,
       };
     } else if (user && !user.googleAccessToken) {
@@ -86,7 +86,7 @@ export class AuthService {
       return {
         accessToken: token,
         email: createdUser.email,
-        id: createdUser._id,
+        _id: createdUser._id,
         name: createdUser.name,
       };
     }
