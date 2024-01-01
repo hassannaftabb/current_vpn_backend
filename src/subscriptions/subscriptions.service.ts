@@ -223,9 +223,11 @@ export class SubscriptionsService {
               "The payment doesn't have a valid plan",
             );
           }
-          const plan = await this.planRepository.findOneBy({
-            name: planName,
-          });
+
+          const searchParams = {
+            name: planName.trim(),
+          };
+          const plan = await this.planRepository.findOneBy(searchParams);
 
           const expiryDate = moment().add(plan.durationInDays, 'days').toDate();
 
