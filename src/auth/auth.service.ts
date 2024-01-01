@@ -45,8 +45,9 @@ export class AuthService {
       return {
         accessToken: token,
         email: user.email,
-        id: user._id,
+        _id: user._id,
         name: user.name,
+        selfReference: user.selfReference
       };
     } else {
       throw new UnauthorizedException('Invalid Credentials');
@@ -68,8 +69,9 @@ export class AuthService {
       return {
         accessToken: token,
         email: user.email,
-        id: user._id,
+        _id: user._id,
         name: user.name,
+        selfReference: user.selfReference
       };
     } else if (user && !user.googleAccessToken) {
       throw new UnauthorizedException(
@@ -86,8 +88,9 @@ export class AuthService {
       return {
         accessToken: token,
         email: createdUser.email,
-        id: createdUser._id,
+        _id: createdUser._id,
         name: createdUser.name,
+        selfReference: user.selfReference
       };
     }
   }
