@@ -106,4 +106,12 @@ export class UserController {
   referalls(@Request() req) {
     return this.userService.getUserReferallInfo(req.user.id);
   }
+  @UseGuards(JwtAuthGuard)
+  @Post('auto-login')
+  autoLoginHandler(@Request() req) {
+    return this.userService.captureOrMatchAutoLoginKey(
+      req.user.id,
+      req.body.deviceId,
+    );
+  }
 }

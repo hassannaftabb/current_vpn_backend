@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -334,5 +335,23 @@ export class UserService {
     );
 
     return { message: 'Password reset successfully' };
+  }
+  async captureOrMatchAutoLoginKey(userId, deviceId: string) {
+    const user = await this.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found!');
+    }
+    const saltRounds = 10;
+    const hash = await bcrypt.hash(deviceId, saltRounds);
+    if (user.autoLoginKey) {
+      if (user.autoLoginKey === hash) {
+        return user;
+      } else {
+        throw new UnauthorizedException('Auto Login key does not match!');
+      }
+    } else {
+      user.autoLoginKey = hash;
+      return await this.userRepository.save(user);
+    }
   }
 }

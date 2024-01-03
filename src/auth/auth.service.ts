@@ -44,10 +44,7 @@ export class AuthService {
       const token = this.jwtService.sign(payloadForToken);
       return {
         accessToken: token,
-        email: user.email,
-        _id: user._id,
-        name: user.name,
-        selfReference: user.selfReference
+        ...user,
       };
     } else {
       throw new UnauthorizedException('Invalid Credentials');
@@ -68,10 +65,7 @@ export class AuthService {
       const token = this.jwtService.sign(payloadForToken);
       return {
         accessToken: token,
-        email: user.email,
-        _id: user._id,
-        name: user.name,
-        selfReference: user.selfReference
+        ...user,
       };
     } else if (user && !user.googleAccessToken) {
       throw new UnauthorizedException(
@@ -87,10 +81,7 @@ export class AuthService {
       const token = this.jwtService.sign(payloadForToken);
       return {
         accessToken: token,
-        email: createdUser.email,
-        _id: createdUser._id,
-        name: createdUser.name,
-        selfReference: user.selfReference
+        ...createdUser,
       };
     }
   }

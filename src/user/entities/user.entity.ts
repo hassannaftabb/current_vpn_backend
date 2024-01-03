@@ -46,6 +46,9 @@ export class User {
   @Column({ nullable: true })
   location?: string;
 
+  @Column({ nullable: true })
+  autoLoginKey?: string;
+
   @Column()
   devices?: Device[];
 
