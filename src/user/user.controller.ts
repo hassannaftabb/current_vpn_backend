@@ -24,9 +24,14 @@ export class UserController {
   create(@Body() body: CreateUserDto) {
     return this.userService.create(body);
   }
-  @Get()
+  @Get('all')
   getAllUsers() {
     return this.userService.getAllUsers();
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  getUserById(@Request() req) {
+    return this.userService.getUserById(req.user.id);
   }
 
   @Delete(':id')
