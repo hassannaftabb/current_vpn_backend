@@ -42,9 +42,12 @@ export class AuthService {
         name: user.name,
       };
       const token = this.jwtService.sign(payloadForToken);
+      const refreshedTokenUser = await this.userService.refreshUserToken(
+        user._id,
+      );
       return {
         accessToken: token,
-        ...user,
+        ...refreshedTokenUser,
       };
     } else {
       throw new UnauthorizedException('Invalid Credentials');
@@ -63,6 +66,8 @@ export class AuthService {
         name: user.name,
       };
       const token = this.jwtService.sign(payloadForToken);
+      await this.userService.refreshUserToken(user._id);
+
       return {
         accessToken: token,
         ...user,

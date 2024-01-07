@@ -24,6 +24,12 @@ export class UserController {
   create(@Body() body: CreateUserDto) {
     return this.userService.create(body);
   }
+  @Post('/refresh-token')
+  refreshToken(@Body() body) {
+    return this.userService.validateRefreshTokenAndGenerateAccessToken(
+      body.refreshToken,
+    );
+  }
   @Get('all')
   getAllUsers() {
     return this.userService.getAllUsers();
@@ -111,12 +117,12 @@ export class UserController {
   referalls(@Request() req) {
     return this.userService.getUserReferallInfo(req.user.id);
   }
-  @UseGuards(JwtAuthGuard)
-  @Post('auto-login')
-  autoLoginHandler(@Request() req) {
-    return this.userService.captureOrMatchAutoLoginKey(
-      req.user.id,
-      req.body.deviceId,
-    );
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Post('auto-login')
+  // autoLoginHandler(@Request() req) {
+  //   return this.userService.captureOrMatchAutoLoginKey(
+  //     req.user.id,
+  //     req.body.deviceId,
+  //   );
+  // }
 }

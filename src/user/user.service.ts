@@ -42,6 +42,50 @@ export class UserService {
     return `CV${result}`;
   }
 
+  async generateRefreshToken(email, id, name) {
+    const payloadForToken = {
+      email: email,
+      id: id,
+      name: name,
+    };
+
+    return this.jwtService.sign(payloadForToken, {
+      expiresIn: '60d',
+    });
+  }
+  async generateAccessToken(email, id, name) {
+    const payloadForToken = {
+      email: email,
+      id: id,
+      name: name,
+    };
+
+    return this.jwtService.sign(payloadForToken);
+  }
+
+  async validateRefreshTokenAndGenerateAccessToken(refreshToken) {
+    const payload = await this.jwtService.verifyAsync(refreshToken);
+    if (payload) {
+      const user = await this.getUserById(payload.id);
+      if (!user) {
+        throw new NotFoundException('User does not exist!');
+      }
+
+      if (user.refreshToken === refreshToken) {
+        const accessToken = await this.generateAccessToken(
+          user.email,
+          user._id,
+          user.name,
+        );
+        return { ...user, accessToken };
+      }
+    } else {
+      throw new UnauthorizedException(
+        'Refresh token is expired please login again.',
+      );
+    }
+  }
+
   async create(createUserDto: CreateUserDto) {
     if (
       createUserDto.provider === ProviderEnum.LOCAL &&
@@ -74,22 +118,42 @@ export class UserService {
       if (isExistingUser) {
         throw new InternalServerErrorException('User already exists!');
       }
+
       const user: any = this.userRepository.create(userToCreate);
+
       return this.userRepository
         .save(user)
         .then(async (user) => {
+          const refreshToken = await this.generateRefreshToken(
+            user.email,
+            user._id,
+            user.name,
+          );
           const payloadForToken = {
             email: user.email,
             id: user._id,
             name: user.name,
           };
+          user.refreshToken = refreshToken;
+          await this.userRepository.save(user);
           const token = this.jwtService.sign(payloadForToken);
-          return { ...user, accessToken: token, _id: user._id };
+          return { ...user, accessToken: token, _id: user._id, refreshToken };
         })
         .catch((err) => {
           throw new HttpException(`${err}`, HttpStatus.BAD_REQUEST);
         });
     }
+  }
+
+  async refreshUserToken(userId) {
+    const user = await this.getUserById(userId);
+    const refreshToken = await this.generateRefreshToken(
+      user.email,
+      user._id,
+      user.name,
+    );
+    user.refreshToken = refreshToken;
+    return await this.userRepository.save(user);
   }
   async getUserByEmail(email: string, device?: Device): Promise<User> {
     const existingUser = await this.userRepository.findOne({

@@ -49,6 +49,9 @@ export class User {
   @Column({ nullable: true })
   autoLoginKey?: string;
 
+  @Column({ nullable: true })
+  refreshToken?: string;
+
   @Column()
   devices?: Device[];
 
