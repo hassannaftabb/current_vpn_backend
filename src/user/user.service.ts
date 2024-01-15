@@ -210,24 +210,30 @@ export class UserService {
     await this.userRepository.delete({ _id: new ObjectId(userId) });
     return this.getAllUsers();
   }
-  async updateUserById(userId: string, updateUserDto: UpdateUserDto) {
+  async updateUserById(
+    userId: string | ObjectId,
+    updateUserDto: UpdateUserDto,
+  ) {
     const user = await this.getUserById(userId);
     if (!user) {
       throw new NotFoundException('No such user with this id');
     }
-    const userToUpdate = {
-      name: updateUserDto.name,
-      email: updateUserDto.email,
-      password:
-        updateUserDto.password !== '' ? updateUserDto.password : user.password,
-      phoneNumber: updateUserDto.phoneNumber,
-      location: updateUserDto.location,
-    };
-    await this.userRepository
-      .update({ _id: new ObjectId(userId) }, userToUpdate)
-      .then(async () => {
-        return await this.getUserById(userId);
-      });
+
+    const userToUpdate = Object.keys(updateUserDto).reduce((acc, key) => {
+      if (
+        updateUserDto[key] !== undefined &&
+        (key !== 'password' || updateUserDto[key] !== '')
+      ) {
+        acc[key] = updateUserDto[key];
+      }
+      return acc;
+    }, {});
+
+    await this.userRepository.update(
+      { _id: new ObjectId(userId) },
+      userToUpdate,
+    );
+    return await this.getUserById(userId);
   }
 
   async manageUserTime(user_id, time) {
