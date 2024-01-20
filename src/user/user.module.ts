@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { Reference } from 'src/reference/entities/reference.entity';
 import { EmailService } from 'src/email/email.service';
+import { S3Service } from 'src/s3/s3.service';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { EmailService } from 'src/email/email.service';
     }),
   ],
   controllers: [UserController],
-  providers: [UserService, EmailService],
+  providers: [UserService, EmailService, S3Service],
   exports: [UserService],
 })
 export class UserModule {}

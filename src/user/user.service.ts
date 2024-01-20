@@ -20,6 +20,7 @@ import { Device } from './entities/device.type';
 import { Reference } from 'src/reference/entities/reference.entity';
 import { generateOtp, generateOtpExpiry, isOtpExpired } from './utils/utils';
 import { EmailService } from 'src/email/email.service';
+import { S3Service } from 'src/s3/s3.service';
 
 @Injectable()
 export class UserService {
@@ -28,6 +29,7 @@ export class UserService {
     private readonly userRepository: MongoRepository<User>,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private s3Service: S3Service,
     @InjectRepository(Reference)
     private readonly referenceRepository: MongoRepository<Reference>,
   ) {}
@@ -40,6 +42,18 @@ export class UserService {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return `CV${result}`;
+  }
+
+  async updateUserProfilePicture(userId: string, image: Express.Multer.File) {
+    const key = `${Math.random()}-profile-picture-${Date.now()}.png`;
+    const profileImgUrl = await this.s3Service.uploadFile(image, key);
+    return await this.userRepository
+      .update(new ObjectId(userId), {
+        profilePicture: profileImgUrl,
+      })
+      .then(async () => {
+        return await this.getUserById(userId);
+      });
   }
 
   async generateRefreshToken(email, id, name) {

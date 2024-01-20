@@ -10,12 +10,15 @@ import {
   Request,
   HttpException,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ChangePasswordDto } from './dto/update-pass.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -23,6 +26,15 @@ export class UserController {
   @Post()
   create(@Body() body: CreateUserDto) {
     return this.userService.create(body);
+  }
+  @Patch('/profile-picture')
+  @UseInterceptors(FileInterceptor('image'))
+  @UseGuards(JwtAuthGuard)
+  updateProfilePicture(
+    @UploadedFile() image: Express.Multer.File,
+    @Request() req: any,
+  ) {
+    return this.userService.updateUserProfilePicture(req.user.id, image);
   }
   @Post('/refresh-token')
   refreshToken(@Body() body) {
