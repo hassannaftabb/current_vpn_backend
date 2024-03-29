@@ -10,15 +10,15 @@ import { Plan } from 'src/plans/entities/plan.entity';
 import { Subscription } from 'src/subscriptions/entities/subscription.entity';
 import { PaymentsService } from 'src/payments/payments.service';
 import { Reference } from 'src/reference/entities/reference.entity';
-import { HttpModule } from '@nestjs/axios'
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Server, User, Plan, Subscription, Reference]),
     SubscriptionsModule,
-    HttpModule
+    HttpModule,
   ],
   controllers: [ServersController],
   providers: [ServersService, SubscriptionsService, PaymentsService],
 })
-export class ServersModule { }
+export class ServersModule {}

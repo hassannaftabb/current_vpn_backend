@@ -8,7 +8,6 @@ import { ObjectId } from 'mongodb';
 import { SubscriptionsService } from 'src/subscriptions/subscriptions.service';
 import { Servers } from './enums/server.enum';
 import { HttpService } from '@nestjs/axios';
-import { Stream } from 'stream';
 
 @Injectable()
 export class ServersService {
@@ -16,8 +15,8 @@ export class ServersService {
     @InjectRepository(Server)
     private readonly serverRepository: MongoRepository<Server>,
     private subscriptionService: SubscriptionsService,
-    private readonly httpService: HttpService
-  ) { }
+    private readonly httpService: HttpService,
+  ) {}
   async create(createServerDto: CreateServerDto) {
     const server = this.serverRepository.create(createServerDto);
     return await this.serverRepository.save(server);
@@ -72,6 +71,10 @@ export class ServersService {
     const serverDetails = await this.serverRepository.findOneBy({
       name: Servers[server],
     });
+
+    if (!serverDetails) {
+      throw new NotFoundException('Server record not found.');
+    }
 
     const ovpnConfig = await this.httpService
       .get(`http://${serverDetails.serverIP}:3000/add-user?userID=${userId}`)
