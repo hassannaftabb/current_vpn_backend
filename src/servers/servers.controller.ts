@@ -16,7 +16,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('servers')
 export class ServersController {
-  constructor(private readonly serversService: ServersService) {}
+  constructor(private readonly serversService: ServersService) { }
 
   @Post()
   create(@Body() createServerDto: CreateServerDto) {
@@ -37,6 +37,11 @@ export class ServersController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.serversService.findOne(id);
+  }
+
+  @Get('/get-ovpn-config/:server')
+  getOvpnConfig(@Request() req, @Param('server') server) {
+    return this.serversService.getOvpnConfig(req.user.id, server);
   }
 
   @Patch(':id')

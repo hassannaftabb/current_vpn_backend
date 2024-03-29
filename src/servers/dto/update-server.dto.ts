@@ -15,5 +15,5 @@ export class UpdateServerDto {
 
   @IsString()
   @IsOptional()
-  configFilePath: string;
+  serverIP: string;
 }
