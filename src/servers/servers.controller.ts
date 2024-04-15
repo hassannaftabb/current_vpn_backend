@@ -39,6 +39,12 @@ export class ServersController {
     return this.serversService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/get-ovpn-config/:server')
+  getOvpnConfig(@Request() req, @Param('server') server) {
+    return this.serversService.getOvpnConfig(req.user.id, server);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateServerDto: UpdateServerDto) {
     return this.serversService.update(id, updateServerDto);

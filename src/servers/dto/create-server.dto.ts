@@ -11,5 +11,5 @@ export class CreateServerDto {
   isPremium: boolean;
 
   @IsString()
-  configFilePath: string;
+  serverIP: string;
 }

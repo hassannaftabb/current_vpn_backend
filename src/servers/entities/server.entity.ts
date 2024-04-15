@@ -22,7 +22,7 @@ export class Server {
   isPremium: boolean;
 
   @Column()
-  configFilePath: string;
+  serverIP: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
