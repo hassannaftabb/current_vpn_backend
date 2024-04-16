@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Query,
 } from '@nestjs/common';
 import { ServersService } from './servers.service';
 import { CreateServerDto } from './dto/create-server.dto';
@@ -23,10 +24,9 @@ export class ServersController {
     return this.serversService.create(createServerDto);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('/get-connection-details/:server')
-  getConnectionDetails(@Request() req, @Param('server') server) {
-    return this.serversService.getConnectionDetails(req.user.id, server);
+  @Get('/get-connection-config/:server')
+  getConnectionDetails(@Query('userId') userId, @Param('server') server) {
+    return this.serversService.getOvpnConfig(userId, server);
   }
 
   @Get()

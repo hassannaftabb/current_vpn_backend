@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateServerDto } from './dto/create-server.dto';
 import { UpdateServerDto } from './dto/update-server.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,7 +12,6 @@ import { Server } from './entities/server.entity';
 import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'mongodb';
 import { SubscriptionsService } from 'src/subscriptions/subscriptions.service';
-import { Servers } from './enums/server.enum';
 import { HttpService } from '@nestjs/axios';
 
 @Injectable()
@@ -48,38 +53,42 @@ export class ServersService {
     return await this.serverRepository.delete(new ObjectId(id));
   }
 
-  async getConnectionDetails(userId, server) {
-    if (!Servers[server]) {
-      throw new NotFoundException('Server record not found.');
-    }
-    const subscription =
-      await this.subscriptionService.validateAndGetUserActiveSubscription(
-        userId,
-      );
-    if (!(subscription.plan.name === 'FREE')) {
-      return this.serverRepository.findOneBy({
-        name: Servers[server],
+  async getOvpnConfig(userId, serverIp) {
+    try {
+      const subscription =
+        await this.subscriptionService.validateAndGetUserActiveSubscription(
+          userId,
+        );
+      console.log(serverIp);
+      const serverDetails = await this.serverRepository.findOne({
+        where: {
+          serverIP: serverIp.trim(),
+        },
       });
+      console.log(serverDetails);
+      if (!serverDetails) {
+        throw new NotFoundException('Server record not found.');
+      }
+
+      if (serverDetails.isPremium && subscription.plan?.name === 'FREE') {
+        throw new UnauthorizedException(
+          'You are trying to access a premium server, please upgrade your plan first.',
+        );
+      }
+
+      const ovpnConfig = await this.httpService
+        .get(`http://${serverDetails.serverIP}:3000/add-user?userID=${userId}`)
+        .toPromise();
+
+      return ovpnConfig.data;
+    } catch (error) {
+      throw new HttpException(
+        'Unable to fetch server configuration, try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        {
+          cause: new Error(error),
+        },
+      );
     }
-  }
-
-  async getOvpnConfig(userId, server) {
-    if (!Servers[server]) {
-      throw new NotFoundException('Server record not found.');
-    }
-
-    const serverDetails = await this.serverRepository.findOneBy({
-      name: Servers[server],
-    });
-
-    if (!serverDetails) {
-      throw new NotFoundException('Server record not found.');
-    }
-
-    const ovpnConfig = await this.httpService
-      .get(`http://${serverDetails.serverIP}:3000/add-user?userID=${userId}`)
-      .toPromise();
-
-    return ovpnConfig.data;
   }
 }
