@@ -22,7 +22,7 @@ async function bootstrap() {
 
   app.enableCors({
     credentials: true,
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://current-vpn.netlify.app', 'http://localhost:5173'],
   });
   app.use(passport.initialize());
   app.use(compression());
