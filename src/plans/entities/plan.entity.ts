@@ -27,6 +27,21 @@ export class Plan {
   @Column('decimal')
   price: number;
 
+  @Column()
+  discountedPrice: number;
+
+  @Column()
+  monthlyPrice: number;
+
+  @Column()
+  devices: number;
+
+  @Column()
+  label: string;
+
+  @Column()
+  features: string[];
+
   @CreateDateColumn()
   createdDate: Date;
 
