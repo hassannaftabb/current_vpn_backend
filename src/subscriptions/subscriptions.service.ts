@@ -147,10 +147,6 @@ export class SubscriptionsService {
       },
     });
     if (!subscription) return null;
-    const plan = await this.planRepository.findOneBy({
-      _id: new ObjectId(subscription.planId),
-    });
-    subscription.plan = plan;
     return subscription;
   }
 
