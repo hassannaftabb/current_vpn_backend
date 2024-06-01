@@ -21,6 +21,9 @@ export class Plan {
   @Column({ nullable: true })
   stripePaymentLink: string;
 
+  @Column({ nullable: true })
+  level: string;
+
   @Column('int')
   durationInDays: number;
 
