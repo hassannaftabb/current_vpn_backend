@@ -171,7 +171,7 @@ export class UserService {
   }
   async getUserByEmail(email: string, device?: Device): Promise<User> {
     const existingUser = await this.userRepository.findOne({
-      where: { email: email, status: 'ACTIVE' },
+      where: { email: email.toLowerCase(), status: 'ACTIVE' },
     });
     if (existingUser) {
       if (device) {
