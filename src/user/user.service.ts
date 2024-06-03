@@ -113,7 +113,7 @@ export class UserService {
         },
       });
       const userToCreate: any = {
-        email: createUserDto.email,
+        email: createUserDto.email.toLowerCase(),
         ...(createUserDto.password && {
           password: await bcrypt.hash(createUserDto.password, 10),
         }),
