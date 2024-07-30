@@ -27,8 +27,19 @@ export class ServersService {
     return await this.serverRepository.save(server);
   }
 
-  findAll() {
-    return this.serverRepository.find();
+  async findAll() {
+    const getFlagUrl = (countryCode) =>
+      `https://flagcdn.com/h40/${countryCode}.png`;
+
+    const servers = await this.serverRepository.find();
+    const serversWithFlags = servers.map((server) => {
+      const flagUrl = server.countryCode
+        ? getFlagUrl(server.countryCode)
+        : null;
+      return { ...server, flagUrl };
+    });
+
+    return serversWithFlags;
   }
 
   async findOne(id: string) {

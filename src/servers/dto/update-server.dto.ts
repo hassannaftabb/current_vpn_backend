@@ -16,4 +16,8 @@ export class UpdateServerDto {
   @IsString()
   @IsOptional()
   serverIP: string;
+
+  @IsString()
+  @IsOptional()
+  countryCode: string;
 }

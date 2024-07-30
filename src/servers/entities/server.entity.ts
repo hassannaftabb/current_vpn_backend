@@ -24,6 +24,9 @@ export class Server {
   @Column()
   serverIP: string;
 
+  @Column({ nullable: true })
+  countryCode?: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 

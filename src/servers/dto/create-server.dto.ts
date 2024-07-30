@@ -12,4 +12,7 @@ export class CreateServerDto {
 
   @IsString()
   serverIP: string;
+
+  @IsString()
+  countryCode: string;
 }
