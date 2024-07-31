@@ -41,4 +41,14 @@ export class SubscriptionsController {
     }
     return this.subscriptionsService.create(body);
   }
+  @Post('cancel-subscription/:user_id')
+  cancelSubscriptionToFree(@Param('user_id') user_id: string) {
+    return this.subscriptionsService.create({
+      expiryDate: null,
+      isActive: true,
+      isExpired: false,
+      planName: 'FREE',
+      userId: user_id,
+    });
+  }
 }
