@@ -1,6 +1,4 @@
 import {
-  HttpException,
-  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -70,17 +68,14 @@ export class ServersService {
         await this.subscriptionService.validateAndGetUserActiveSubscription(
           userId,
         );
-      console.log(serverIp);
       const serverDetails = await this.serverRepository.findOne({
         where: {
           serverIP: serverIp.trim(),
         },
       });
-      console.log(serverDetails);
       if (!serverDetails) {
         throw new NotFoundException('Server record not found.');
       }
-
       if (serverDetails.isPremium && subscription.plan?.name === 'FREE') {
         throw new UnauthorizedException(
           'You are trying to access a premium server, please upgrade your plan first.',
@@ -93,13 +88,8 @@ export class ServersService {
 
       return ovpnConfig.data;
     } catch (error) {
-      throw new HttpException(
-        'Unable to fetch server configuration, try again later.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        {
-          cause: new Error(error),
-        },
-      );
+      console.log(error);
+      throw error;
     }
   }
 }
