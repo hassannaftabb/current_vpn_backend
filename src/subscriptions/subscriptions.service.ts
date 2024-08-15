@@ -162,7 +162,7 @@ export class SubscriptionsService {
       throw new BadRequestException('Payment not succeeded, please try again!');
     }
 
-    if (paymentIntent.amount_received / 100 != plan.price) {
+    if (paymentIntent.amount_received / 100 != parseFloat(plan.price)) {
       throw new BadRequestException('Not enough payment for plan subscription');
     }
     const expiryDate = moment().add(plan.durationInDays, 'days').toDate();
