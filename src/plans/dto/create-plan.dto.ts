@@ -10,6 +10,6 @@ export class CreatePlanDto {
   @IsInt()
   durationInDays: number;
 
-  @IsNumber()
-  price: number;
+  @IsString()
+  price: string;
 }

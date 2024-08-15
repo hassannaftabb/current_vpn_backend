@@ -27,8 +27,8 @@ export class Plan {
   @Column('int')
   durationInDays: number;
 
-  @Column('decimal')
-  price: number;
+  @Column()
+  price: string;
 
   @Column()
   discountedPrice: number;
