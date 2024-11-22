@@ -166,8 +166,14 @@ export class UserService {
       user._id,
       user.name,
     );
+    const accessToken = await this.generateAccessToken(
+      user.email,
+      user._id,
+      user.name,
+    );
     user.refreshToken = refreshToken;
-    return await this.userRepository.save(user);
+    const updatedUser = await this.userRepository.save(user);
+    return { ...updatedUser, accessToken };
   }
   async getUserByEmail(email: string, device?: Device): Promise<User> {
     const existingUser = await this.userRepository.findOne({
